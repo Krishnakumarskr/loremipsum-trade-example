@@ -39,7 +39,7 @@ const API_KEY = 'pp_your_api_key_here';
 const HMAC_SECRET = Buffer.from('any-random-string').toString('base64');
 
 const client = new ClobClient(
-  'http://localhost:3001',  // LoremIpsumTrade API URL
+  'https://clob.loremipsumtrade.com',  // LoremIpsumTrade API URL
   137,                       // Chain ID (Polygon)
   wallet,
   {
@@ -59,7 +59,7 @@ const client = new ClobClient(
 Before placing orders, you need to know which token IDs are available. Fetch active markets from our REST API:
 
 ```typescript
-const response = await fetch('http://localhost:3001/markets/active');
+const response = await fetch('https://clob.loremipsumtrade.com/markets/active');
 const { data } = await response.json();
 
 // data.markets is an array of active BTC 15-minute markets
@@ -188,24 +188,6 @@ const trades = await client.getTrades();
 
 ---
 
-## Endpoint Reference
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| `GET` | `/book?token_id=...` | No | Order book for a token |
-| `GET` | `/tick-size?token_id=...` | No | Minimum tick size |
-| `GET` | `/neg-risk` | No | Neg-risk flag (always `false`) |
-| `GET` | `/fee-rate` | No | Taker fee rate in basis points |
-| `POST` | `/order` | Yes | Place a signed order |
-| `DELETE` | `/order` | Yes | Cancel a single order |
-| `DELETE` | `/orders` | Yes | Cancel a batch of orders |
-| `DELETE` | `/cancel-all` | Yes | Cancel all open orders |
-| `GET` | `/data/order/:id` | Yes | Get order details by ID |
-| `GET` | `/data/orders` | Yes | List open orders (filter by `market`, `asset_id`) |
-| `GET` | `/data/trades` | Yes | List trade history (filter by `market`, `asset_id`, `before`, `after`) |
-
----
-
 ## Full Example
 
 ```typescript
@@ -216,7 +198,7 @@ async function main() {
   const wallet = Wallet.createRandom();
 
   const client = new ClobClient(
-    'http://localhost:3001',
+    'https://clob.loremipsumtrade.com',
     137,
     wallet, //Can be any random wallet
     {
@@ -229,7 +211,7 @@ async function main() {
   // 3. Place a BUY order
   const signed = await client.createOrder(
     { tokenID: tokenUp, price: 0.45, size: 10, side: Side.BUY },
-    { tickSize: book.tick_size, negRisk: false },
+    { tickSize: book.tick_size },
   );
   const result = await client.postOrder(signed, OrderType.GTC);
   console.log(`Order placed: ${result.orderID} (${result.status})`);
@@ -255,9 +237,7 @@ main().catch(console.error);
 | Matching | Virtual matching engine (no real money) | Real on-chain order book |
 | Balance | $10,000 virtual starting balance | Real USDC |
 | Markets | BTC Up/Down 15-minute markets only | All Polymarket markets |
-| Neg-Risk | Always `false` | Varies by market |
 | Fee Rate | 0% maker / 0.2% taker (fixed) | May vary |
-| Settlement | Automatic at market expiry | Blockchain-based |
 | Private Key | Any random key works | Must control real wallet |
 | API Key Auth | Only `X-API-Key` validated | Full HMAC signature validation |
 
